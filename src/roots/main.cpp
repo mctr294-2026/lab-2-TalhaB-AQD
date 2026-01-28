@@ -27,6 +27,12 @@ double poly2_deriv(double x)
     return 6 * x * x - 8 * x + 3;
 }
 
+double poly3(double x)
+{
+    // initial bracket [0.5,2.5]
+    return x * x - 4;
+}
+
 int main(int argc, char **argv)
 {
     double root = 0.0;
@@ -116,5 +122,17 @@ int main(int argc, char **argv)
         std::cout << "Secant: failed" << std::endl;
     }
 
+    if (secant(poly3, 0.0, 3.0, 1.0, &root))
+    {
+        std::cout << "Secant: root = " << root << ", poly3(root) = " << poly3(root) << std::endl;
+    }
+    else
+    {
+        std::cout << "Secant: failed" << std::endl;
+    }
+    
+
     return 0;
 }
+
+//ctest --test-dir build -C Debug --output-on-failure

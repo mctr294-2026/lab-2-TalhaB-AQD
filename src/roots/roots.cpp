@@ -1,6 +1,6 @@
-#include "roots.hpp"
 #include <cmath>
 #include <iostream>
+#include "roots.hpp"
 
 const double TOLERANCE = 1e-6;
 const int MAX_ITERATIONS = 1000000;
@@ -11,37 +11,44 @@ const int MAX_ITERATIONS = 1000000;
  */
 bool bisection(std::function<double(double)> f, double a, double b, double *root)
 {
+
+    if(!root) return false;
+
     double fa = f(a);
     double fb = f(b);
 
-    if (fa * fb >= 0)
-    {
-        return false; // No sign change, no guarantee of root
-    }
+    if (fa == 0.0) { *root = a; return true;}
+
+    if (fb == 0.0) { *root = b; return true;}
+
+    if (fa * fb > 0) return false;
+
 
     double c;
-    double fc;
     for (int i = 0; i < MAX_ITERATIONS; i++)
     {
-        c = (a + b) / 2;
-        fc = f(c);
-        if (fabs(fc) < TOLERANCE || (b - a) / 2 < TOLERANCE)
+        c = 0.5 * (a + b);
+        double fc = f(c);
+
+        if (std::fabs(fc) < TOLERANCE || std::fabs(b - a) < TOLERANCE)
         {
             *root = c;
             return true;
         }
 
-        if (fc * fa < 0)
+        if (fa * fc < 0)
         {
             b = c;
+            fb = fc;
         }
         else
         {
             a = c;
+            fa = fc;
         }
     }
 
-    *root = c;
+    *root = 0.5 * (a + b);
     return true;
 }
 
@@ -51,44 +58,44 @@ bool bisection(std::function<double(double)> f, double a, double b, double *root
  */
 bool regula_falsi(std::function<double(double)> f, double a, double b, double *root)
 {
-    if (f(a) * f(b) >= 0)
-    {
-        return false; // No sign change, no guarantee of root
-    }
-    double c;
+
+    double fa = f(a);
+    double fb = f(b);
+
+    if (fa * fb > 0) return false; // No sign change, no guarantee of root
+    
+    double c = a;
+
     for (int i = 0; i < MAX_ITERATIONS; i++)
     {
-        double fa = f(a);
-        double fb = f(b);
-
-        if (fabs(fb - fa) < 1e-12)
-        {
-            return false;
-        }
+        if (fabs(fb - fa) < 1e-12) return false;
 
         c = a - (fa * (b - a)) / (fb - fa);
-        
+
         if (c <= a || c >= b) {
-            c = (a + b) / 2.0;
+            c = 0.5 * (a + b);  // Fallback to bisection
         }
+
+        double fc = f(c);
         
-        if (fabs(f(c)) < TOLERANCE || fabs(b - a) < TOLERANCE) {
+        if (fabs(fc) < TOLERANCE || fabs(b - a) < TOLERANCE) {
             *root = c;
             return true;
         }
 
-        if (f(c) * f(a) < 0)
+        if (fc * fa < 0)
         {
             b = c;
+            fb = fc;
         }
         else
         {
             a = c;
+            fa = fc;
         }
     }
 
-    *root = c;
-    return true;
+    return false;
 }
 
 /**
@@ -107,25 +114,22 @@ bool newton_raphson(std::function<double(double)> f, std::function<double(double
         double fc = f(c);
         double gc = g(c);
 
-        if (fabs(gc) < 1e-12)
-        {
-            return false;
-        }
+        if (fabs(gc) < 1e-12) return false;
+        
         double c_next = c - fc / gc;
+
+        if (c_next < a || c_next > b) return false;
+
         if (fabs(c_next - c) < TOLERANCE)
         {
             *root = c_next;
             return true;
         }
-        if (c_next < a || c_next > b)
-        {
-          // 
-        }
+
         c = c_next;
     }
 
-    *root = c;
-    return true;
+    return false;
 }
 
 /**
@@ -147,28 +151,29 @@ bool secant(std::function<double(double)> f, double a, double b, double c, doubl
         double f_prev = f(x_prev);
         double f_curr = f(x_curr);
 
-        if (fabs(f_curr - f_prev) < 1e-12)
-        {
-            return false;
-        }
+        if (std::fabs(f_curr - f_prev) < 1e-12) return false;
+        
 
         double x_new = x_curr - (f_curr * (x_curr - x_prev)) / (f_curr - f_prev);
 
-        if (fabs(x_new - x_curr) < TOLERANCE)
+        if (x_new < a || x_new > b) {
+            x_new = 0.5 * (a + b);  // Fallback to bisection
+        }
+        
+        double f_new = f(x_new);
+
+        if (std::fabs(x_new - x_curr) < TOLERANCE || std::fabs(f_new) < TOLERANCE)
         {
             *root = x_new;
             return true;
         }
 
-        if (x_new < a || x_new > b)
-        {
-            return false;
-        }
 
         x_prev = x_curr;
         x_curr = x_new;
     }
-
     *root = x_curr;
-    return true;
+    return false;
 }
+
+// ctest --test-dir build -C Debug --output-on-failure
