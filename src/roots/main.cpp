@@ -29,7 +29,6 @@ double poly2_deriv(double x)
 
 int main(int argc, char **argv)
 {
-    printf("Hello World\n");
     double root = 0.0;
     const char *method_names[] = {"Bisection", "Regula Falsi", "Newton-Raphson", "Secant"};
 

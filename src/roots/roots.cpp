@@ -9,51 +9,80 @@ const int MAX_ITERATIONS = 1000000;
  * Bisection Method - bracketing method
  * Requires: f(a) and f(b) have opposite signs
  */
-bool bisection(std::function<double(double)> f, double a, double b, double *root){
-    return false ? f(a) * f(b) >= 0 : false;
-    double c;
-    for(int i =0; i< MAX_ITERATIONS; i++){
-        c= (a + b) / 2;
+bool bisection(std::function<double(double)> f, double a, double b, double *root)
+{
+    double fa = f(a);
+    double fb = f(b);
 
-        if(fabs(f(c)) < TOLERANCE || (b - a) / 2 < TOLERANCE){
+    if (fa * fb >= 0)
+    {
+        return false; // No sign change, no guarantee of root
+    }
+
+    double c;
+    double fc;
+    for (int i = 0; i < MAX_ITERATIONS; i++)
+    {
+        c = (a + b) / 2;
+        fc = f(c);
+        if (fabs(fc) < TOLERANCE || (b - a) / 2 < TOLERANCE)
+        {
             *root = c;
             return true;
         }
 
-        if (f(c) * f(a) < 0){
+        if (fc * fa < 0)
+        {
             b = c;
-        } else {
+        }
+        else
+        {
             a = c;
         }
-
     }
 
     *root = c;
     return true;
-
 }
 
 /**
  * Regula Falsi Method - bracketing method
  * Requires: f(a) and f(b) have opposite signs
  */
-bool regula_falsi(std::function<double(double)> f, double a, double b, double *root){
-    return false ? f(a) * f(b) >= 0 : false;
-
+bool regula_falsi(std::function<double(double)> f, double a, double b, double *root)
+{
+    if (f(a) * f(b) >= 0)
+    {
+        return false; // No sign change, no guarantee of root
+    }
     double c;
-    for (int i=0; i < MAX_ITERATIONS; i++){
+    for (int i = 0; i < MAX_ITERATIONS; i++)
+    {
         double fa = f(a);
         double fb = f(b);
 
-        if(fabs(fb-fa)<1e-12) {
+        if (fabs(fb - fa) < 1e-12)
+        {
             return false;
         }
 
-        c = (fa * (b - a)) / (fb-fa);
+        c = a - (fa * (b - a)) / (fb - fa);
+        
+        if (c <= a || c >= b) {
+            c = (a + b) / 2.0;
+        }
+        
+        if (fabs(f(c)) < TOLERANCE || fabs(b - a) < TOLERANCE) {
+            *root = c;
+            return true;
+        }
 
-        if(f(c) * f(a) < 0){
+        if (f(c) * f(a) < 0)
+        {
             b = c;
-        } else {
+        }
+        else
+        {
             a = c;
         }
     }
@@ -71,23 +100,26 @@ bool regula_falsi(std::function<double(double)> f, double a, double b, double *r
  *   c: initial guess
  *   root: pointer to store result
  */
-bool newton_raphson(std::function<double(double)> f, std::function<double(double)> g, double a, double b, double c, double *root){
-    for (int i=0; i< MAX_ITERATIONS; i++){
+bool newton_raphson(std::function<double(double)> f, std::function<double(double)> g, double a, double b, double c, double *root)
+{
+    for (int i = 0; i < MAX_ITERATIONS; i++)
+    {
         double fc = f(c);
         double gc = g(c);
 
-        if (fabs(gc) < 1e-12){
+        if (fabs(gc) < 1e-12)
+        {
             return false;
         }
         double c_next = c - fc / gc;
-        if (fabs(c_next - c) < TOLERANCE){
+        if (fabs(c_next - c) < TOLERANCE)
+        {
             *root = c_next;
             return true;
         }
-        if (c_next < a || c_next > b){
-            //Return Here probably
-            return false;
-
+        if (c_next < a || c_next > b)
+        {
+          // 
         }
         c = c_next;
     }
@@ -105,29 +137,33 @@ bool newton_raphson(std::function<double(double)> f, std::function<double(double
  *   root: pointer to store result
  */
 
-bool secant(std::function<double(double)> f, double a, double b, double c, double *root){
-    double x_prev = a; 
+bool secant(std::function<double(double)> f, double a, double b, double c, double *root)
+{
+    double x_prev = a;
     double x_curr = c;
 
-    for (int i=0; i < MAX_ITERATIONS; i++){
+    for (int i = 0; i < MAX_ITERATIONS; i++)
+    {
         double f_prev = f(x_prev);
         double f_curr = f(x_curr);
 
-        if (fabs(f_curr- f_prev) < 1e-12){
+        if (fabs(f_curr - f_prev) < 1e-12)
+        {
             return false;
         }
 
-         double x_new = x_curr - (f_curr * (x_curr - x_prev)) / (f_curr - f_prev);
+        double x_new = x_curr - (f_curr * (x_curr - x_prev)) / (f_curr - f_prev);
 
-        if (fabs(x_new - x_curr) < TOLERANCE){
+        if (fabs(x_new - x_curr) < TOLERANCE)
+        {
             *root = x_new;
             return true;
         }
 
-        if (x_new < a || x_new < b){
+        if (x_new < a || x_new > b)
+        {
             return false;
         }
-
 
         x_prev = x_curr;
         x_curr = x_new;
