@@ -1,7 +1,9 @@
 #include <iostream>
 #include <iomanip>
-
 #include "roots.hpp"
+#include "roots.cpp"
+#include <cstdio>
+#include <functional>
 
 double poly1(double x)
 {
@@ -27,6 +29,7 @@ double poly2_deriv(double x)
 
 int main(int argc, char **argv)
 {
+    printf("Hello World\n");
     double root = 0.0;
     const char *method_names[] = {"Bisection", "Regula Falsi", "Newton-Raphson", "Secant"};
 
